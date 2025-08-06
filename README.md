@@ -43,7 +43,7 @@ A real-time multiplayer Tambola (Housie) game built with Node.js, Socket.IO, and
 
 ```
 NIGU/
-├── app.html              # Main Single Page Application
+├── index.html            # Main Single Page Application
 ├── server-rooms.js       # Main server with room management
 ├── gameLogic.js          # Ticket generation and win checking
 ├── roomManager.js        # Room and player management

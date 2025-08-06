@@ -11,10 +11,10 @@ const io = socketIo(server);
 // Initialize room manager
 const roomManager = new RoomManager();
 
-// Serve main page
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'app.html'));
-});
+        // Serve main page
+        app.get('/', (req, res) => {
+            res.sendFile(path.join(__dirname, 'index.html'));
+        });
 
 // Serve static files
 app.use(express.static(path.join(__dirname)));
