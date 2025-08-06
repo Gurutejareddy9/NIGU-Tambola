@@ -614,7 +614,7 @@
             padding: 10px 20px;
             border-radius: 8px;
             cursor: pointer;
-            font-size: 0.9rem;
+                font-size: 0.9rem;
             transition: background 0.3s ease;
             position: absolute;
             top: 20px;
@@ -741,12 +741,12 @@
 
         <!-- Dashboard View -->
         <div id="dashboardView" class="view dashboard-view">
-            <div class="header">
+        <div class="header">
                 <h1>🎯 Tambola Dashboard</h1>
                 <div class="welcome-message">
                     Welcome back, <span class="player-name" id="playerNameDisplay"></span>!
                 </div>
-            </div>
+        </div>
 
             <div class="options-grid">
                 <div class="option-card" onclick="createRoom()">
@@ -766,8 +766,8 @@
                         Wait for the host to start the game.
                     </p>
                 </div>
+                </div>
             </div>
-        </div>
 
         <!-- Create Room View -->
         <div id="createRoomView" class="view create-room-view">
@@ -775,12 +775,12 @@
             
             <div class="header">
                 <h1>🎯 Create Room</h1>
-            </div>
+                    </div>
 
             <div id="loadingSection" class="room-info">
                 <div class="loading"></div>
                 <p>Creating your room...</p>
-            </div>
+                </div>
 
             <div id="roomSection" class="room-info" style="display: none;">
                 <div class="room-code" id="roomCode">ABC123</div>
@@ -789,8 +789,8 @@
                 </button>
                 <div class="status-message" id="statusMessage">
                     Waiting for players to join...
-                </div>
-            </div>
+                    </div>
+                    </div>
 
             <div class="players-section">
                 <h3 class="section-title">Players in Room</h3>
@@ -803,8 +803,8 @@
                 <button class="btn btn-success" id="startGameBtn" onclick="startGame()" disabled>
                     🎮 Start Game
                 </button>
-            </div>
-        </div>
+                    </div>
+                    </div>
 
         <!-- Join Room View -->
         <div id="joinRoomView" class="view join-room-view">
@@ -812,7 +812,7 @@
             
             <div class="header">
                 <h1>🚪 Join Room</h1>
-            </div>
+                    </div>
 
             <div id="joinForm" class="join-form">
                 <h2>Enter Room Code</h2>
@@ -833,7 +833,7 @@
                 <button class="btn btn-primary" id="joinBtn" onclick="joinRoom()">
                     🚪 Join Room
                 </button>
-            </div>
+                </div>
 
             <div id="waitingRoom" class="waiting-room">
                 <h2>Waiting for Game to Start</h2>
@@ -847,9 +847,9 @@
                     <div id="waitingPlayersList" class="players-list">
                         <!-- Players will be populated here -->
                     </div>
-                </div>
             </div>
         </div>
+    </div>
 
         <!-- Game View -->
         <div id="gameView" class="view game-view">
@@ -916,7 +916,7 @@
     </div>
 
     <script>
-        const socket = io();
+        const socket = io('https://nigu-tambola.onrender.com');
         let currentView = 'loginView';
         let playerName = '';
         let roomCode = '';
@@ -1038,7 +1038,7 @@
                 showToast('Only the host can start the game');
                 return;
             }
-            
+
             const startBtn = document.getElementById('startGameBtn');
             startBtn.disabled = true;
             startBtn.innerHTML = '<div class="loading"></div>Starting...';

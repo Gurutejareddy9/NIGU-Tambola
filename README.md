@@ -15,6 +15,7 @@ A real-time multiplayer Tambola (Housie) game built with Node.js, Socket.IO, and
 
 ## 🚀 Quick Start
 
+### Local Development
 1. **Install Dependencies**:
    ```bash
    npm install
@@ -22,12 +23,18 @@ A real-time multiplayer Tambola (Housie) game built with Node.js, Socket.IO, and
 
 2. **Start the Server**:
    ```bash
-   node server-rooms.js
+   npm start
    ```
 
 3. **Access the Game**:
    - **Local**: http://localhost:3002
    - **Network**: http://[your-ip]:3002
+
+### Render Hosting
+The server is configured for Render hosting with:
+- **CORS enabled** for GitHub Pages origin
+- **Environment variable** port support (`process.env.PORT`)
+- **Static file serving** for deployment
 
 ## 🎮 How to Play
 
@@ -57,6 +64,7 @@ NIGU/
 - **Frontend**: HTML5, CSS3, Vanilla JavaScript
 - **Real-time**: Socket.IO for live updates
 - **Audio**: Web Speech API for number announcements
+- **Hosting**: Render-ready with CORS configuration
 
 ## 🎲 Game Rules
 

@@ -1,12 +1,21 @@
 const express = require('express');
-const http = require('http');
-const socketIo = require('socket.io');
+const app = express();
+const http = require('http').createServer(app);
+const cors = require('cors');
+
+const { Server } = require('socket.io');
+const io = new Server(http, {
+  cors: {
+    origin: "https://gurutejareddy9.github.io", // ✅ GitHub Pages origin
+    methods: ["GET", "POST"]
+  }
+});
+
+app.use(cors());
+app.use(express.static('public')); // optional if you want to serve HTML from backend
+
 const path = require('path');
 const RoomManager = require('./roomManager');
-
-const app = express();
-const server = http.createServer(app);
-const io = socketIo(server);
 
 // Initialize room manager
 const roomManager = new RoomManager();
@@ -289,25 +298,9 @@ setInterval(() => {
     roomManager.cleanupInactiveRooms();
 }, 60 * 60 * 1000);
 
-// Start server
 const PORT = process.env.PORT || 3002;
-server.listen(PORT, '0.0.0.0', () => {
-    console.log(`🎯 Room-based Tambola Server running on port ${PORT}`);
-    console.log(`🌐 Local: http://localhost:${PORT}`);
-    console.log(`🌐 Network: http://${getLocalIP()}:${PORT}`);
+http.listen(PORT, () => {
+  console.log(`✅ Server running on port ${PORT}`);
 });
 
-// Get local IP address
-function getLocalIP() {
-    const { networkInterfaces } = require('os');
-    const nets = networkInterfaces();
-    
-    for (const name of Object.keys(nets)) {
-        for (const net of nets[name]) {
-            if (net.family === 'IPv4' && !net.internal) {
-                return net.address;
-            }
-        }
-    }
-    return 'localhost';
-} 
+ 
