@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiplayer Tambola</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+            margin-bottom: 10px;
+        }
+
+        .main-content {
+            padding: 40px;
+        }
+
+        .connection-panel {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .connection-panel input {
+            padding: 12px 20px;
+            font-size: 1.1rem;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            margin-right: 15px;
+            width: 250px;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .game-section {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .ticket-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+        }
+
+        .ticket-section h3 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 1.5rem;
+        }
+
+        .ticket-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 5px;
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .ticket-cell {
+            aspect-ratio: 1;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+            background: white;
+            transition: all 0.3s ease;
+        }
+
+        .ticket-cell.filled {
+            background: #e3f2fd;
+            border-color: #2196f3;
+            color: #1976d2;
+        }
+
+        .ticket-cell.called {
+            background: #c8e6c9;
+            border-color: #4caf50;
+            color: #2e7d32;
+            animation: pulse 0.5s ease;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .game-controls {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+        }
+
+        .game-controls h3 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 1.5rem;
+        }
+
+        .current-number {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .current-number-display {
+            font-size: 4rem;
+            font-weight: bold;
+            color: #667eea;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+        }
+
+        .picked-numbers {
+            max-height: 200px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        .picked-list {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+        }
+
+        .picked-number {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            padding: 8px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .picked-number:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .win-claim-section {
+            margin-top: 20px;
+        }
+
+        .win-claim-section select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .players-panel {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+        .players-panel h3 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+            font-size: 1.5rem;
+        }
+
+        .player-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .player-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 4px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .player-item.game-master {
+            border-left-color: #ff6b6b;
+            background: #fff5f5;
+        }
+
+        .player-name {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .game-master-badge {
+            background: #ff6b6b;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .status-connected {
+            background: #4ecdc4;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            font-weight: bold;
+            font-size: 1.1rem;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            animation: toastSlideIn 0.5s ease forwards;
+        }
+
+        @keyframes toastSlideIn {
+            0% { transform: translateX(400px); }
+            100% { transform: translateX(0); }
+        }
+
+        @keyframes toastSlideOut {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(400px); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .game-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .ticket-grid {
+                gap: 3px;
+                padding: 10px;
+            }
+            
+            .ticket-cell {
+                font-size: 0.9rem;
+            }
+            
+            .picked-list {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Multiplayer Tambola</h1>
+            <p>Play Tambola with friends over your local network!</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Navigation -->
+            <div class="nav-buttons" style="margin-bottom: 20px; justify-content: center;">
+                <a href="/sessions" class="btn btn-secondary">Session History</a>
+                <a href="/leaderboard" class="btn btn-secondary">Leaderboard</a>
+            </div>
+
+            <!-- Connection Panel -->
+            <div class="connection-panel" id="connectionPanel">
+                <h3>Join the Game</h3>
+                <input type="text" id="playerNameInput" placeholder="Enter your name (optional)" maxlength="20">
+                <button class="btn btn-primary" id="joinGameBtn">Join Game</button>
+                <div id="connectionStatus" style="margin-top: 15px; font-weight: bold; color: #666;"></div>
+            </div>
+
+            <!-- Game Content (hidden until connected) -->
+            <div id="gameContent" class="hidden">
+                <!-- Players Panel -->
+                <div class="players-panel">
+                    <h3>Players Online</h3>
+                    <div class="player-list" id="playerList">
+                        <!-- Players will be listed here -->
+                    </div>
+                </div>
+
+                <div class="game-section">
+                    <!-- Ticket Section -->
+                    <div class="ticket-section">
+                        <h3>Your Tambola Ticket</h3>
+                        <div class="ticket-grid" id="ticketGrid">
+                            <!-- Ticket cells will be generated here -->
+                        </div>
+                    </div>
+
+                    <!-- Game Controls -->
+                    <div class="game-controls">
+                        <h3>Game Controls</h3>
+                        
+                        <!-- Game Master Controls -->
+                        <div id="gameMasterControls" class="hidden">
+                            <button class="btn btn-secondary" id="pickNumberBtn">Pick Number</button>
+                            <button class="btn btn-primary" id="resumeGameBtn" style="margin-left: 10px;">Resume Last Game</button>
+                            <p style="margin-top: 10px; font-size: 0.9rem; color: #666;">
+                                You are the Game Master. Click to pick the next number or resume the last incomplete game.
+                            </p>
+                        </div>
+
+                        <!-- Current Number Display -->
+                        <div class="current-number">
+                            <div class="current-number-display" id="currentNumber">-</div>
+                            <p>Latest Number</p>
+                        </div>
+
+                        <!-- Picked Numbers -->
+                        <div class="picked-numbers">
+                            <h4>Called Numbers</h4>
+                            <div class="picked-list" id="pickedList">
+                                <!-- Picked numbers will be displayed here -->
+                            </div>
+                        </div>
+
+                        <!-- Win Claim Section -->
+                        <div class="win-claim-section">
+                            <h4>Claim Win</h4>
+                            <select id="winPatternSelect">
+                                <option value="">Select a pattern...</option>
+                                <option value="earlyFive">Early Five</option>
+                                <option value="topLine">Top Line</option>
+                                <option value="middleLine">Middle Line</option>
+                                <option value="bottomLine">Bottom Line</option>
+                                <option value="fourCorners">Four Corners</option>
+                                <option value="fullHouse">Full House</option>
+                            </select>
+                            <button class="btn btn-success" id="claimWinBtn">Claim Win</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Socket.io connection
+        const socket = io();
+        
+        // DOM Elements
+        const connectionPanel = document.getElementById('connectionPanel');
+        const gameContent = document.getElementById('gameContent');
+        const playerNameInput = document.getElementById('playerNameInput');
+        const joinGameBtn = document.getElementById('joinGameBtn');
+        const connectionStatus = document.getElementById('connectionStatus');
+        const playerList = document.getElementById('playerList');
+        const ticketGrid = document.getElementById('ticketGrid');
+        const gameMasterControls = document.getElementById('gameMasterControls');
+        const pickNumberBtn = document.getElementById('pickNumberBtn');
+        const currentNumberDisplay = document.getElementById('currentNumber');
+        const pickedList = document.getElementById('pickedList');
+        const winPatternSelect = document.getElementById('winPatternSelect');
+        const claimWinBtn = document.getElementById('claimWinBtn');
+        const resumeGameBtn = document.getElementById('resumeGameBtn');
+
+        // Game state
+        let gameState = {
+            playerId: null,
+            playerName: '',
+            ticket: null,
+            pickedNumbers: [],
+            isGameMaster: false
+        };
+
+        // Initialize ticket grid
+        function initializeTicketGrid() {
+            ticketGrid.innerHTML = '';
+            for (let i = 0; i < 27; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'ticket-cell';
+                cell.textContent = '-';
+                cell.dataset.index = i;
+                ticketGrid.appendChild(cell);
+            }
+        }
+
+        // Render ticket
+        function renderTicket(ticket) {
+            const cells = ticketGrid.querySelectorAll('.ticket-cell');
+            
+            cells.forEach((cell, index) => {
+                const row = Math.floor(index / 9);
+                const col = index % 9;
+                const value = ticket[row][col];
+                
+                if (value !== null) {
+                    cell.textContent = value;
+                    cell.classList.add('filled');
+                } else {
+                    cell.textContent = '';
+                    cell.classList.remove('filled', 'called');
+                }
+            });
+        }
+
+        // Update picked numbers display
+        function updatePickedNumbers() {
+            pickedList.innerHTML = '';
+            gameState.pickedNumbers.forEach(num => {
+                const numEl = document.createElement('div');
+                numEl.className = 'picked-number';
+                numEl.textContent = num;
+                pickedList.appendChild(numEl);
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'toastSlideOut 0.5s ease forwards';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        document.body.removeChild(toast);
+                    }
+                }, 500);
+            }, 3000);
+        }
+
+        // Update player list
+        function updatePlayerList(players) {
+            playerList.innerHTML = '';
+            players.forEach(player => {
+                const playerEl = document.createElement('div');
+                playerEl.className = `player-item ${player.isGameMaster ? 'game-master' : ''}`;
+                
+                playerEl.innerHTML = `
+                    <div>
+                        <span class="status-indicator status-connected"></span>
+                        <span class="player-name">${player.name}</span>
+                    </div>
+                    ${player.isGameMaster ? '<span class="game-master-badge">Game Master</span>' : ''}
+                `;
+                
+                playerList.appendChild(playerEl);
+            });
+        }
+
+        // Check for matches on ticket
+        function checkForMatches(number) {
+            if (!gameState.ticket) return;
+            
+            for (let row = 0; row < 3; row++) {
+                for (let col = 0; col < 9; col++) {
+                    if (gameState.ticket[row][col] === number) {
+                        const cellIndex = row * 9 + col;
+                        const cell = ticketGrid.querySelector(`[data-index="${cellIndex}"]`);
+                        if (cell) {
+                            cell.classList.add('called');
+                        }
+                    }
+                }
+            }
+        }
+
+        // Event Listeners
+        joinGameBtn.addEventListener('click', () => {
+            const playerName = playerNameInput.value.trim();
+            socket.emit('joinGame', playerName);
+            joinGameBtn.disabled = true;
+            joinGameBtn.textContent = 'Joining...';
+        });
+
+        pickNumberBtn.addEventListener('click', () => {
+            socket.emit('pickNumber');
+        });
+
+        claimWinBtn.addEventListener('click', () => {
+            const pattern = winPatternSelect.value;
+            if (!pattern) {
+                showToast('Please select a win pattern');
+                return;
+            }
+            
+            socket.emit('claimWin', { pattern });
+            winPatternSelect.value = '';
+        });
+
+        resumeGameBtn.addEventListener('click', () => {
+            socket.emit('resumeLastGame');
+        });
+
+        // Socket.io event handlers
+        socket.on('connect', () => {
+            connectionStatus.textContent = 'Connected to server';
+            connectionStatus.style.color = '#4ecdc4';
+        });
+
+        socket.on('disconnect', () => {
+            connectionStatus.textContent = 'Disconnected from server';
+            connectionStatus.style.color = '#ff6b6b';
+            gameContent.classList.add('hidden');
+            connectionPanel.classList.remove('hidden');
+            joinGameBtn.disabled = false;
+            joinGameBtn.textContent = 'Join Game';
+        });
+
+        socket.on('gameJoined', (data) => {
+            gameState.playerId = data.playerId;
+            gameState.playerName = data.playerName;
+            gameState.ticket = data.ticket;
+            gameState.pickedNumbers = data.pickedNumbers;
+            gameState.isGameMaster = data.isGameMaster;
+            
+            // Update UI
+            connectionPanel.classList.add('hidden');
+            gameContent.classList.remove('hidden');
+            
+            // Render ticket
+            renderTicket(data.ticket);
+            
+            // Update picked numbers
+            updatePickedNumbers();
+            
+            // Show game master controls if applicable
+            if (data.isGameMaster) {
+                gameMasterControls.classList.remove('hidden');
+            }
+            
+            showToast(`Welcome, ${data.playerName}!`);
+        });
+
+        socket.on('gameMasterRole', (isGameMaster) => {
+            gameState.isGameMaster = isGameMaster;
+            if (isGameMaster) {
+                gameMasterControls.classList.remove('hidden');
+                showToast('You are now the Game Master!');
+            } else {
+                gameMasterControls.classList.add('hidden');
+            }
+        });
+
+        socket.on('numberPicked', (data) => {
+            gameState.pickedNumbers = data.pickedNumbers;
+            currentNumberDisplay.textContent = data.number;
+            updatePickedNumbers();
+            checkForMatches(data.number);
+            
+            showToast(`Number ${data.number} called!`);
+        });
+
+        socket.on('playerList', (players) => {
+            updatePlayerList(players);
+        });
+
+        socket.on('gameMasterChanged', (data) => {
+            showToast(`${data.newGameMaster} is now the Game Master`);
+        });
+
+        socket.on('winClaimed', (data) => {
+            const patternNames = {
+                earlyFive: 'Early Five',
+                topLine: 'Top Line',
+                middleLine: 'Middle Line',
+                bottomLine: 'Bottom Line',
+                fourCorners: 'Four Corners',
+                fullHouse: 'Full House'
+            };
+            
+            showToast(`🎉 ${data.playerName} won ${patternNames[data.pattern]}!`);
+        });
+
+        socket.on('gameEnded', (data) => {
+            showToast(`🏆 Game ended! Session: ${data.sessionId}`);
+            
+            // Show download report button
+            const downloadBtn = document.createElement('button');
+            downloadBtn.className = 'btn btn-success';
+            downloadBtn.textContent = 'Download Game Report';
+            downloadBtn.style.marginTop = '10px';
+            downloadBtn.onclick = () => downloadGameReport(data);
+            
+            const gameControls = document.querySelector('.game-controls');
+            gameControls.appendChild(downloadBtn);
+        });
+
+        socket.on('gameResumed', (data) => {
+            gameState.pickedNumbers = data.pickedNumbers;
+            gameState.winners = data.winners;
+            
+            // Update display
+            updatePickedNumbers();
+            currentNumberDisplay.textContent = data.pickedNumbers[data.pickedNumbers.length - 1] || '-';
+            
+            // Mark called numbers on ticket
+            data.pickedNumbers.forEach(number => {
+                checkForMatches(number);
+            });
+            
+            showToast(`🔄 Game resumed: ${data.sessionId}`);
+        });
+
+        socket.on('claimRejected', (data) => {
+            showToast('❌ Invalid win claim');
+        });
+
+        socket.on('error', (message) => {
+            showToast(`Error: ${message}`);
+        });
+
+        // Download game report
+        function downloadGameReport(data) {
+            const report = {
+                sessionId: data.sessionId,
+                winners: data.winners,
+                timestamp: new Date().toISOString(),
+                playerName: gameState.playerName,
+                ticket: gameState.ticket
+            };
+            
+            const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `tambola-report-${data.sessionId}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showToast('📄 Game report downloaded!');
+        }
+
+        // Initialize
+        initializeTicketGrid();
+    </script>
+</body>
+</html> 
