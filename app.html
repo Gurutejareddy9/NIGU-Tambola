@@ -1068,15 +1068,12 @@
 
         // Populate Ticket
         function populateTicket(ticketNumbers) {
-            console.log('Populating ticket with:', ticketNumbers);
             gameState.ticket = ticketNumbers;
             
             const ticketGrid = document.getElementById('ticketGrid');
-            console.log('Ticket grid found:', ticketGrid);
             
             // Make sure we have the right number of cells
             if (ticketGrid.children.length !== 27) {
-                console.log('Reinitializing ticket grid - found', ticketGrid.children.length, 'cells, need 27');
                 initializeTicketGrid();
             }
             
@@ -1085,7 +1082,6 @@
                 if (cell && ticketNumbers[i] !== 0) {
                     cell.textContent = ticketNumbers[i];
                     cell.classList.add('filled');
-                    console.log(`Cell ${i}: ${ticketNumbers[i]}`);
                 } else if (cell) {
                     cell.textContent = '';
                 }
@@ -1297,20 +1293,12 @@
             // Initialize number table
             generateNumberTable();
             
-            // Debug: Check if ticket data is received
-            console.log('Game started data:', data);
-            console.log('Current gameState.ticket:', gameState.ticket);
-            
             // Populate ticket if available (for host or if stored)
             if (gameState.ticket) {
-                console.log('Using stored ticket:', gameState.ticket);
                 populateTicket(gameState.ticket);
             } else if (data.ticket) {
-                console.log('Using received ticket:', data.ticket);
                 gameState.ticket = data.ticket;
                 populateTicket(data.ticket);
-            } else {
-                console.log('No ticket available!');
             }
             
             // Update win badges

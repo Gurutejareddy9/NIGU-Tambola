@@ -1,56 +1,77 @@
-# NIGU-Tambola
+# Tambola Multiplayer Game
 
-A modern web-based Smart Tambola Game built with HTML, CSS, and JavaScript.
+A real-time multiplayer Tambola (Housie) game built with Node.js, Socket.IO, and vanilla JavaScript.
 
-## Features
+## 🎯 Features
 
-- 🎯 **Smart Tambola Game Interface** - Clean, modern UI with responsive design
-- 🎫 **Ticket Generation** - Generate Tambola tickets with a 9x3 grid layout
-- 🎲 **Number Picker** - Randomly select numbers from 1 to 90
-- 📊 **Game Statistics** - Track picked numbers, remaining numbers, and matches
-- 🔊 **Voice Announcements** - Optional voice announcements for picked numbers
-- 📱 **Responsive Design** - Works on desktop, tablet, and mobile devices
+- **Real-time Multiplayer**: Play with friends over LAN
+- **Room-based System**: Create/join rooms with 6-character codes
+- **Automatic Number Picking**: Computer picks numbers every 5 seconds
+- **Audio Announcements**: Numbers are announced when picked
+- **Manual Ticket Marking**: Click numbers on your ticket to mark them
+- **Win Pattern Claims**: Claim Early Five, Top Line, Middle Line, Bottom Line, Four Corners, Full House
+- **Number History**: View recently called numbers
+- **Responsive Design**: Works on desktop and mobile
 
-## UI Components
+## 🚀 Quick Start
 
-1. **Title Section** - "Smart Tambola" with modern gradient styling
-2. **Control Panel** - Generate Ticket, Pick Number, and Voice Toggle buttons
-3. **Ticket Display** - 9x3 grid showing the Tambola ticket
-4. **Number Picker** - Shows the latest picked number
-5. **Picked Numbers Panel** - Displays all previously picked numbers
-6. **Statistics Section** - Game progress and statistics
+1. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
 
-## How to Use
+2. **Start the Server**:
+   ```bash
+   node server-rooms.js
+   ```
 
-1. Open `index.html` in a web browser
-2. Click "Generate Ticket" to create a new Tambola ticket
-3. Click "Pick Number" to randomly select a number
-4. Toggle voice announcements on/off as desired
-5. Watch for matches on your ticket as numbers are called
+3. **Access the Game**:
+   - **Local**: http://localhost:3002
+   - **Network**: http://[your-ip]:3002
 
-## Technical Details
+## 🎮 How to Play
 
-- **Frontend**: Pure HTML, CSS, and JavaScript (no frameworks)
-- **Styling**: Modern CSS with gradients, animations, and responsive design
-- **Voice**: Uses Web Speech API for number announcements
-- **Layout**: CSS Grid and Flexbox for responsive design
-- **Animations**: Smooth transitions and hover effects
+1. **Enter your name** and continue
+2. **Create a room** or **join an existing room**
+3. **Wait for players** to join (minimum 2 players)
+4. **Start the game** (host only)
+5. **Watch numbers being called** automatically
+6. **Click numbers on your ticket** when you see them called
+7. **Claim wins** when you complete patterns
 
-## Future Enhancements
+## 📁 Project Structure
 
-- Implement proper Tambola ticket generation logic
-- Add multiple player support
-- Include game win conditions and validation
-- Add sound effects and background music
-- Implement game history and statistics tracking
+```
+NIGU/
+├── app.html              # Main Single Page Application
+├── server-rooms.js       # Main server with room management
+├── gameLogic.js          # Ticket generation and win checking
+├── roomManager.js        # Room and player management
+├── package.json          # Dependencies
+└── README.md            # This file
+```
 
-## Browser Compatibility
+## 🛠️ Technology Stack
 
-- Chrome (recommended for voice features)
-- Firefox
-- Safari
-- Edge
+- **Backend**: Node.js, Express.js, Socket.IO
+- **Frontend**: HTML5, CSS3, Vanilla JavaScript
+- **Real-time**: Socket.IO for live updates
+- **Audio**: Web Speech API for number announcements
 
-## License
+## 🎲 Game Rules
+
+- **Ticket**: 3 rows × 9 columns with 15 numbers
+- **Number Picking**: 1-90 numbers picked randomly
+- **Win Patterns**:
+  - Early Five: First 5 matched numbers
+  - Top/Middle/Bottom Line: Complete row
+  - Four Corners: All corner numbers
+  - Full House: All 15 numbers
+
+## 🌐 Network Play
+
+The server runs on `0.0.0.0:3002`, so other devices on your LAN can join using your computer's IP address.
+
+## 📝 License
 
 This project is open source and available under the MIT License.
