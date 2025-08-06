@@ -2,6 +2,9 @@
 
 A real-time multiplayer Tambola (Housie) game built with Node.js, Socket.IO, and vanilla JavaScript.
 
+### Click Here To Play ! ###
+[Tambola Game](https://nigu-tambola.onrender.com/)
+
 ## 🎯 Features
 
 - **Real-time Multiplayer**: Play with friends over LAN
