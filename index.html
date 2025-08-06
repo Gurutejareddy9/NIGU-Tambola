@@ -559,12 +559,70 @@
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
 
-        .current-number-display {
-            font-size: 3rem;
-            font-weight: bold;
-            color: #667eea;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-            margin-bottom: 8px;
+        .win-claims-display {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            margin-top: 15px;
+        }
+
+        .win-claims-display h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .win-claims-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .win-claim-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #4ecdc4;
+            font-size: 0.9rem;
+        }
+
+        .win-claim-pattern {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .win-claim-player {
+            color: #4ecdc4;
+            font-weight: 500;
+        }
+
+        .win-claim-item.early-five {
+            border-left-color: #ff6b6b;
+        }
+
+        .win-claim-item.top-line {
+            border-left-color: #4ecdc4;
+        }
+
+        .win-claim-item.middle-line {
+            border-left-color: #45b7d1;
+        }
+
+        .win-claim-item.bottom-line {
+            border-left-color: #96ceb4;
+        }
+
+        .win-claim-item.four-corners {
+            border-left-color: #feca57;
+        }
+
+        .win-claim-item.full-house {
+            border-left-color: #ff9ff3;
         }
 
         /* Common Styles */
@@ -897,10 +955,12 @@
                         🏆 Claim Win
                     </button>
 
-                    <!-- Current Number Display -->
-                    <div class="current-number">
-                        <div class="current-number-display" id="currentNumber">-</div>
-                        <div>Latest Number</div>
+                    <!-- Win Claims Display -->
+                    <div class="win-claims-display">
+                        <h4>Win Claims</h4>
+                        <div class="win-claims-list" id="winClaimsList">
+                            <!-- Win claims will be displayed here -->
+                        </div>
                     </div>
                 </div>
 
@@ -1157,6 +1217,38 @@
             });
         }
 
+        // Update Win Claims Display
+        function updateWinClaimsDisplay() {
+            const claimsList = document.getElementById('winClaimsList');
+            claimsList.innerHTML = '';
+            
+            if (!gameState.winStatus || Object.keys(gameState.winStatus).length === 0) {
+                claimsList.innerHTML = '<div style="color: #666; font-style: italic; text-align: center;">No wins claimed yet</div>';
+                return;
+            }
+            
+            const patternNames = {
+                earlyFive: 'Early Five',
+                topLine: 'Top Line',
+                middleLine: 'Middle Line',
+                bottomLine: 'Bottom Line',
+                fourCorners: 'Four Corners',
+                fullHouse: 'Full House'
+            };
+            
+            Object.entries(gameState.winStatus).forEach(([pattern, playerName]) => {
+                const claimItem = document.createElement('div');
+                claimItem.className = `win-claim-item ${pattern}`;
+                
+                claimItem.innerHTML = `
+                    <span class="win-claim-pattern">${patternNames[pattern]}</span>
+                    <span class="win-claim-player">${playerName}</span>
+                `;
+                
+                claimsList.appendChild(claimItem);
+            });
+        }
+
         // Update Number History
         function updateNumberHistory() {
             const historyContainer = document.getElementById('historyNumbers');
@@ -1256,6 +1348,11 @@
                 updateNumberHistory();
             }
             
+            // Update win claims display if there are any claims
+            if (data.winStatus && Object.keys(data.winStatus).length > 0) {
+                updateWinClaimsDisplay();
+            }
+            
             updatePlayersList([{
                 name: playerName,
                 isHost: isHost
@@ -1304,8 +1401,14 @@
             // Update win badges
             updateWinBadges();
             
+            // Update win claims display
+            updateWinClaimsDisplay();
+            
             // Update number history
             updateNumberHistory();
+            
+            // Setup game event listeners
+            setupGameEventListeners();
             
             // Hide manual pick button since we're using automatic picking
             document.getElementById('hostControls').style.display = 'none';
@@ -1313,12 +1416,6 @@
 
         socket.on('numberPicked', (data) => {
             gameState.calledNumbers = data.calledNumbers;
-            document.getElementById('currentNumber').textContent = data.number;
-            document.getElementById('currentNumber').style.animation = 'pulse 0.5s ease';
-            
-            setTimeout(() => {
-                document.getElementById('currentNumber').style.animation = '';
-            }, 500);
             
             // Announce the number
             announceNumber(data.number);
@@ -1335,80 +1432,72 @@
             if (data.winStatus) {
                 gameState.winStatus = data.winStatus;
                 updateWinBadges();
+                updateWinClaimsDisplay();
             }
         });
 
         socket.on('gameFinished', (data) => {
             showToast('Game finished! All numbers have been called.');
-            document.getElementById('currentNumber').textContent = 'END';
-            document.getElementById('currentNumber').style.background = '#ff6b6b';
         });
 
         socket.on('winStatusUpdated', (data) => {
             gameState.winStatus = data.winStatus;
             updateWinBadges();
+            updateWinClaimsDisplay();
         });
 
         socket.on('error', (error) => {
             showToast(error);
         });
 
-        // Game Event Listeners
-        document.getElementById('pickNumberBtn').addEventListener('click', () => {
-            if (!isHost) {
-                showToast('Only the host can pick numbers');
-                return;
-            }
+        // Setup game event listeners when game view is shown
+        function setupGameEventListeners() {
+            // Win pattern badge selection
+            const badges = document.querySelectorAll('.win-badge');
             
-            const pickBtn = document.getElementById('pickNumberBtn');
-            pickBtn.disabled = true;
-            pickBtn.innerHTML = '<div class="loading"></div>Picking...';
-            
-            socket.emit('pickNumber');
-            
-            setTimeout(() => {
-                pickBtn.disabled = false;
-                pickBtn.innerHTML = '🎲 Pick Number';
-            }, 2000);
-        });
-
-        // Win pattern badge selection
-        document.querySelectorAll('.win-badge').forEach(badge => {
-            badge.addEventListener('click', () => {
-                // Don't allow selection of claimed badges
-                if (badge.classList.contains('claimed')) {
-                    return;
-                }
-                
-                // Remove selection from all badges
-                document.querySelectorAll('.win-badge').forEach(b => b.classList.remove('selected'));
-                // Select clicked badge
-                badge.classList.add('selected');
+            badges.forEach(badge => {
+                badge.addEventListener('click', () => {
+                    // Don't allow selection of claimed badges
+                    if (badge.classList.contains('claimed')) {
+                        return;
+                    }
+                    
+                    // Remove selection from all badges
+                    document.querySelectorAll('.win-badge').forEach(b => b.classList.remove('selected'));
+                    // Select clicked badge
+                    badge.classList.add('selected');
+                });
             });
-        });
 
-        document.getElementById('claimWinBtn').addEventListener('click', () => {
-            const selectedBadge = document.querySelector('.win-badge.selected');
+            // Claim win button
+            const claimWinBtn = document.getElementById('claimWinBtn');
             
-            if (!selectedBadge) {
-                showToast('Please select a win pattern');
-                return;
+            if (claimWinBtn) {
+                claimWinBtn.addEventListener('click', () => {
+                    const selectedBadge = document.querySelector('.win-badge.selected');
+                    
+                    if (!selectedBadge) {
+                        showToast('Please select a win pattern');
+                        return;
+                    }
+                    
+                    const pattern = selectedBadge.dataset.pattern;
+                    
+                    const claimBtn = document.getElementById('claimWinBtn');
+                    claimBtn.disabled = true;
+                    claimBtn.innerHTML = '<div class="loading"></div>Claiming...';
+                    
+                    socket.emit('claimWin', { pattern });
+                    
+                    setTimeout(() => {
+                        claimBtn.disabled = false;
+                        claimBtn.innerHTML = '🏆 Claim Win';
+                        // Clear selection
+                        document.querySelectorAll('.win-badge').forEach(b => b.classList.remove('selected'));
+                    }, 2000);
+                });
             }
-            
-            const pattern = selectedBadge.dataset.pattern;
-            const claimBtn = document.getElementById('claimWinBtn');
-            claimBtn.disabled = true;
-            claimBtn.innerHTML = '<div class="loading"></div>Claiming...';
-            
-            socket.emit('claimWin', { pattern });
-            
-            setTimeout(() => {
-                claimBtn.disabled = false;
-                claimBtn.innerHTML = '🏆 Claim Win';
-                // Clear selection
-                document.querySelectorAll('.win-badge').forEach(b => b.classList.remove('selected'));
-            }, 2000);
-        });
+        }
 
         // Auto-focus on inputs
         document.getElementById('roomCodeInput').addEventListener('input', (e) => {
